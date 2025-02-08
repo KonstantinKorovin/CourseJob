@@ -8,8 +8,15 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-root_logger = logging.getLogger("utils")
-file_handler = logging.FileHandler("../logs/utils_log.txt", "w")
+abs_path = os.path.abspath(__file__)
+src_dir = os.path.dirname(abs_path)
+utils_path = os.path.join(os.path.dirname(src_dir), "logs", "utils_log.txt")
+PATH_TO_XLSX = os.path.join(os.path.dirname(src_dir), "data", "operations.xlsx")
+json_data = os.path.join(os.path.dirname(src_dir), "user_settings.json")
+
+
+root_logger = logging.getLogger()
+file_handler = logging.FileHandler(utils_path, "w")
 file_formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s: %(message)s")
 file_handler.setFormatter(file_formatter)
 root_logger.addHandler(file_handler)
@@ -18,7 +25,6 @@ root_logger.setLevel(logging.DEBUG)
 root_logger.info("Starting app...")
 load_dotenv()
 root_logger.info("Получение файла...")
-PATH_TO_XLSX = os.path.abspath("../data/operations.xlsx")
 
 
 def read_excel_transactions(file_path: Any) -> Any:
@@ -37,7 +43,8 @@ def new_date_format(file_date: Any) -> Any:
     """Форматирование даты"""
     for x in file_date:
         x["Дата операции"] = (
-            f"{x['Дата операции'][6:10]}-{x['Дата операции'][3:5]}-{x['Дата операции'][0:2]} {x['Дата операции'][11:19]}"
+            f"{x['Дата операции'][6:10]}-{x['Дата операции'][3:5]}-"
+            f"{x['Дата операции'][0:2]} {x['Дата операции'][11:19]}"
         )
     return file_date
 
@@ -67,7 +74,7 @@ def present_time() -> Any:
         return "Доброй ночи"
 
 
-def list_date_transactions(file_data: Any, list_data: Any) -> Any:
+def list_date_transactions(list_data: Any, file_data: Any = None) -> Any:
     """Получение списка в определенном диапазоне дат"""
     date_max = greeting(file_xlsx[0]["Дата операции"])  # 2021-12-31 16:44:00
     date_min = greeting(file_xlsx[-1]["Дата операции"])  # 2018-01-01 12:49:53
@@ -82,9 +89,6 @@ def list_date_transactions(file_data: Any, list_data: Any) -> Any:
             if str(date_one)[:10] <= date_operation[:10] <= str(user_date)[:10]:
                 new_list.append(row)
         return new_list
-
-
-json_data = os.path.abspath("../user_settings.json")
 
 
 def json_file_user_reading(file_data: Any) -> Any:
