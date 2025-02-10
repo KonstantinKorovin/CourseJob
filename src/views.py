@@ -3,18 +3,13 @@ import logging
 import os
 
 from src.utils import (
-    file_xlsx,
     json_data,
     json_file_user_reading,
     list_date_transactions,
     present_time,
-    price_ticket_amazon,
-    price_ticket_apple,
-    price_ticket_google,
-    price_ticket_msft,
-    price_ticket_tesla,
-    reading_api_euro_data,
-    reading_api_usd_data,
+    price_ticket_data,
+    read_excel_transactions,
+    reading_api_data,
     sorted_amount,
 )
 
@@ -47,31 +42,26 @@ views_logger.addHandler(views_handler)
 views_logger.setLevel(logging.DEBUG)
 
 
-def views(file_data: str) -> str:
+def views(file_path, file_data: str) -> str:
     """Главная"""
     views_logger.info("Starting app...")
-    card_info = sorted_amount(list_date_transactions(file_xlsx, file_data))
+    card_info = sorted_amount(list_date_transactions(read_excel_transactions(file_path), file_data))
     json_info = json_file_user_reading(json_data)
-    usd = reading_api_usd_data()
-    euro = reading_api_euro_data()
-    values_list = [usd, euro]
-    apple = price_ticket_apple()
-    amazon = price_ticket_amazon()
-    google = price_ticket_google()
-    microsoft = price_ticket_msft()
-    tesla = price_ticket_tesla()
-    tickets_list = [apple, amazon, google, microsoft, tesla]
+    values_list = []
+    tickets_list = []
     json_list["greeting"] = present_time()
     json_list["cards"] = []
     json_list["top_transactions"] = []
     views_logger.info("Перебор валют...")
     for i, info in enumerate(json_list["currency_rates"]):
+        values_list.append(json_info.get("user_currencies")[i])
         info["currency"] = json_info["user_currencies"][i]
-        info["rate"] = values_list[i]
+        info["rate"] = reading_api_data(values_list[i])
     views_logger.info("Перебор тикетов...")
     for i, info in enumerate(json_list["stock_prices"]):
+        tickets_list.append(json_info.get("user_stocks")[i])
         info["stock"] = json_info["user_stocks"][i]
-        info["price"] = tickets_list[i]
+        info["price"] = price_ticket_data(tickets_list[i])
     views_logger.info("Перебор составляющих ответа...")
     for card in card_info:
         last_digits = str(card.get("Номер карты")).replace("*", "")
