@@ -21,5 +21,5 @@ def working_or_weekend_main(file_path, date=None):
 
 if __name__ == '__main__':
     print(views_main(PATH_TO_XLSX, '2021-11-12 13:13:13'))
-    print(search_transfers_main(PATH_TO_XLSX))
-    print(working_or_weekend_main(true_list_transactions))
+    print(search_transfers_main(true_list_transactions))
+    print(working_or_weekend_main(PATH_TO_XLSX))
