@@ -19,16 +19,6 @@ reports_logger.addHandler(reports_handler)
 reports_logger.setLevel(logging.DEBUG)
 
 
-def dec_working_or_weekend(func):
-    """Логирование одноименной функции"""
-
-    def wrapper(*args, **kwargs):
-        result = f"{func.__name__} была вызвана с аргументами: {func()}"
-        return result
-
-    return wrapper
-
-
 function_results = {}
 
 
