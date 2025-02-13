@@ -1,22 +1,25 @@
 from src.reports import working_or_weekend_expenses
 from src.services import search_transfers_individuals
-from src.utils import file_xlsx, PATH_TO_XLSX
+from src.utils import PATH_TO_XLSX, read_excel_transactions
 from src.views import views
 
 
-def views_main():
-    return views("2021-12-12 12:12:12")
+true_list_transactions = read_excel_transactions(PATH_TO_XLSX)
 
 
-def search_transfers_main():
-    return search_transfers_individuals(file_xlsx)
+def views_main(file_path, source_date):
+    return views(file_path, source_date)
 
 
-def working_or_transfers_main():
-    return working_or_weekend_expenses(PATH_TO_XLSX)
+def search_transfers_main(file_path):
+    return search_transfers_individuals(file_path)
+
+
+def working_or_weekend_main(file_path, date=None):
+    return working_or_weekend_expenses(file_path, date)
 
 
 if __name__ == '__main__':
-    print(views_main())
-    print(search_transfers_main())
-    print(working_or_transfers_main())
+    print(views_main(PATH_TO_XLSX, '2021-11-12 13:13:13'))
+    print(search_transfers_main(true_list_transactions))
+    print(working_or_weekend_main(PATH_TO_XLSX))

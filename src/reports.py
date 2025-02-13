@@ -1,10 +1,10 @@
+import json
 import logging
 import os
 from datetime import datetime, timedelta
+from typing import Any
 
-import pandas as pd
-
-from src.utils import PATH_TO_XLSX
+from src.utils import PATH_TO_XLSX, read_excel_transactions
 
 abs_path = os.path.abspath(__file__)
 src_dir = os.path.dirname(abs_path)
@@ -19,10 +19,33 @@ reports_logger.addHandler(reports_handler)
 reports_logger.setLevel(logging.DEBUG)
 
 
-def working_or_weekend_expenses(transactions: pd.DataFrame, date: str = None) -> pd.DataFrame:
+function_results = {}
+
+
+def save_result(filename: str = "default.json") -> Any:
+    """Декоратор для сохранения результата выполнения функции."""
+
+    def inner(func):
+        def wrapper(*args, **kwargs):
+            true_filename = os.path.join(os.path.dirname(src_dir), "data", filename)
+            with open(true_filename, "w", encoding="utf-8") as file:
+                result = func(*args, **kwargs)
+                function_name = func.__name__
+                params_key = (args, tuple(sorted(kwargs.items())))
+                function_results[(function_name, params_key)] = result
+                file.write(result)
+            return result
+
+        return wrapper
+
+    return inner
+
+
+@save_result("default.json")
+def working_or_weekend_expenses(transactions: str, date: str = None) -> str:
     """Выводит среднюю сумму трат в рабочие/выходные дни за последние три месяца от переданной даты"""
     reports_logger.info("Starting app...")
-    df = pd.read_excel(transactions).to_dict("records")
+    df = read_excel_transactions(transactions)
     reports_logger.info("Форматирование максимальных дат в обьект времени...")
     date_max = datetime.strptime(df[0]["Дата операции"], "%d.%m.%Y %H:%M:%S")
     date_min = datetime.strptime(df[-1]["Дата операции"], "%d.%m.%Y %H:%M:%S")
@@ -50,9 +73,9 @@ def working_or_weekend_expenses(transactions: pd.DataFrame, date: str = None) ->
             if operation_date.isoweekday() in [6, 7]:
                 free_days.append(x.get("Сумма операции"))
     reports_logger.info("Подсчет трат по будням и выходным ...")
-    transactions_job = sum(job_days) / len(job_days)
-    transactions_free = sum(free_days) / len(free_days)
-    reports_logger.info("Получение дата фрейма...")
-    df1 = pd.DataFrame({"Траты в рабочие дни": [transactions_job], "Траты в выходные дни": [transactions_free]})
+    transactions_job = str(sum(job_days) / len(job_days)).replace("-", "")
+    transactions_free = str(sum(free_days) / len(free_days)).replace("-", "")
+    reports_logger.info("Парсинг json...")
+    df1 = {"Траты в рабочие дни": float(transactions_job), "Траты в выходные дни": float(transactions_free)}
     reports_logger.info("Finished app...")
-    return df1
+    return json.dumps(df1)
